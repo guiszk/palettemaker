@@ -11,6 +11,8 @@ parser.add_argument(dest='img', type=str, help="Image path")
 parser.add_argument(dest='num', type=int, help="Number of colors in palette")
 parser.add_argument('-o', '--output', type=str, help="Save color palette as image")
 parser.add_argument('-e', '--embed', type=str, help="Embed palette in original image and write as new file")
+parser.add_argument('-s', '--show', action="store_true", default=False, help="Display embed image (overwrites -o and -e)")
+parser.add_argument('-z', '--horizontal', action="store_true", default=False, help="Display palette as horizontal lines")
 args = parser.parse_args()
 
 END = "\x1b[0m"
@@ -41,26 +43,36 @@ else:
     print("{} is not a valid file.".format(args.img))
     sys.exit(1)
 
-def genpalette(w, h):
+def genpalette(w, h, horizontal=False):
     img = Image.new("RGBA", (w, h))
     for i in range(numcol):
-        dv = w/numcol
-        shape = [(dv*i, 0), ((dv*i)+dv, h)]
+        if(horizontal):
+            dv = h/numcol
+            shape = [(0, dv*i), (w, (dv*i)+dv)]
+        else:
+            dv = w/numcol
+            shape = [(dv*i, 0), ((dv*i)+dv, h)]
         hx = "#" + rgbhex(pal[i])
         ImageDraw.Draw(img).rectangle(shape, fill=hx)
     return img
 
-if(args.output):
+if(args.output or args.show):
     w, h = 640, 360
-    im = genpalette(640, 360)
-    im.save(args.output)
-    print(str("Color palette saved at " + os.path.abspath(args.output)))
-if(args.embed):
+    im = genpalette(640, 360, horizontal=args.horizontal)
+    if(args.show):
+        im.show()
+    else:
+        im.save(args.output)
+        print(str("Color palette saved at " + os.path.abspath(args.output)))
+if(args.embed or args.show):
     im = Image.open(args.img)
     h, w = im.height, im.width
-    ov = genpalette(w, h)
+    ov = genpalette(w, h, horizontal=args.horizontal)
     ov.putalpha(170) #change overlay image alpha from 0-255
     #im.paste(ov, (0, h-40), mask=ov) #overlay as color stripe on bottom
     im.paste(ov, (0, 0), mask=ov) #overlay over entire image with transparency
-    im.save(args.embed)
-    print(str("Overlayed image saved at " + os.path.abspath(args.embed)))
+    if(args.show):
+        im.show()
+    else:
+        im.save(args.embed)
+        print(str("Overlayed image saved at " + os.path.abspath(args.embed)))
