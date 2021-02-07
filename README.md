@@ -10,10 +10,13 @@ Use `--horizontal` to display palette horizontally.
 
 ## Examples
 Source image
+
 ![original image](./hES84VKM7PI.jpg)
 
 Color palette
+
 ![palette image](./out.png)
 
 Embedded image
+
 ![embedded image](./output.png)
